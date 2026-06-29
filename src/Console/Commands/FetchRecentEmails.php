@@ -220,7 +220,7 @@ class FetchRecentEmails extends Command
             
             if (empty($attachmentParts)) {
                 $this->line("No attachments found through standard detection.");
-                $this->line("   Attempting to find inline/gzip content parts...");
+                $this->line("   Attempting to find inline/gzip/content parts...");
                 
                 // Fallback: look for any gzip or xml content in body parts
                 $attachmentParts = $this->findPotentialDMARCParts($message);
@@ -270,8 +270,45 @@ class FetchRecentEmails extends Command
                     $hex = bin2hex(substr($content, 0, 10));
                     $this->line("Magic bytes: " . $hex);
                     
-                    // Detect if this is a gzip file (Google uses this)
-                    if ($this->isGzipContent($content)) {
+                    // Detect file type - Check ZIP first (Google's format)
+                    if ($this->isZipContent($content)) {
+                        $this->line("Detected ZIP file");
+                        
+                        // Save raw zip if requested
+                        if ($saveAttachments) {
+                            $this->saveRawAttachment($content, $filename, $fromEmail);
+                        }
+                        
+                        // Extract the ZIP content
+                        $extractedContent = $this->extractZipContent($content);
+                        
+                        if ($extractedContent) {
+                            $this->line("Extracted " . strlen($extractedContent) . " bytes from ZIP");
+                            
+                            // Check if extracted content is XML
+                            if ($this->isXML($extractedContent)) {
+                                $this->line("XML content detected in ZIP");
+                                $this->parseAndSaveDMARCXML($extractedContent, $fromEmail, $subject);
+                                
+                                if ($saveAttachments) {
+                                    $this->saveExtractedReport($extractedContent, $filename, $fromEmail);
+                                }
+                            } else {
+                                // Try to find XML within the extracted content
+                                $xmlContent = $this->extractXMLFromContent($extractedContent);
+                                if ($xmlContent) {
+                                    $this->line("XML found within ZIP content");
+                                    $this->parseAndSaveDMARCXML($xmlContent, $fromEmail, $subject);
+                                } else {
+                                    $this->line("Extracted ZIP content is not XML (preview):");
+                                    $preview = substr(trim($extractedContent), 0, 200);
+                                    $this->line("      " . $preview . "...");
+                                }
+                            }
+                        } else {
+                            $this->line("Failed to extract ZIP content");
+                        }
+                    } elseif ($this->isGzipContent($content)) {
                         $this->line("Detected GZIP content");
                         
                         // Save raw gzip if requested
@@ -440,6 +477,23 @@ class FetchRecentEmails extends Command
                 $contentType = $part->contentType() ?: '';
                 $filename = $part->filename() ?: $this->getFilenameFromParams($part);
 
+                // Check for ZIP content (Google's format)
+                if (str_contains($contentType, 'zip') || 
+                    str_contains($contentType, 'x-zip-compressed') ||
+                    (str_contains($contentType, 'octet-stream') && $filename && 
+                     str_ends_with(strtolower($filename), '.zip'))) {
+
+                    $parts[] = [
+                        'partNumber' => $part->partNumber(),
+                        'filename' => $filename ?: 'report.zip',
+                        'contentType' => $contentType,
+                        'size' => $part->size() ?? 0,
+                        'encoding' => $part->encoding() ?? 'unknown',
+                        'isInline' => true,
+                        'isAttachment' => false,
+                    ];
+                }
+
                 // Check for gzip content
                 if (str_contains($contentType, 'gzip') || 
                     str_contains($contentType, 'x-gzip') ||
@@ -503,6 +557,14 @@ class FetchRecentEmails extends Command
     }
     
     /**
+     * Check if content is a ZIP file
+     */
+    protected function isZipContent(string $content): bool
+    {
+        return substr($content, 0, 4) === "PK\x03\x04";
+    }
+    
+    /**
      * Check if content is gzip
      */
     protected function isGzipContent(string $content): bool
@@ -529,10 +591,14 @@ class FetchRecentEmails extends Command
         $contentType = strtolower($contentType);
         $filename = strtolower($filename ?? '');
         
-        return str_contains($contentType, 'gzip') ||
+        return str_contains($contentType, 'zip') ||
+               str_contains($contentType, 'gzip') ||
                str_contains($contentType, 'xml') ||
                str_contains($contentType, 'x-gzip') ||
+               str_contains($contentType, 'x-zip') ||
+               str_contains($contentType, 'x-zip-compressed') ||
                str_contains($contentType, 'octet-stream') ||
+               str_ends_with($filename, '.zip') ||
                str_ends_with($filename, '.gz') ||
                str_ends_with($filename, '.gzip') ||
                str_ends_with($filename, '.xml') ||
@@ -729,6 +795,7 @@ class FetchRecentEmails extends Command
                 $zip->extractTo($extractDir);
                 $zip->close();
                 
+                // Look for XML files in the extracted directory
                 $files = glob($extractDir . '/*.xml');
                 if (!empty($files)) {
                     $xmlContent = file_get_contents($files[0]);
@@ -736,6 +803,16 @@ class FetchRecentEmails extends Command
                     array_map('unlink', glob($extractDir . '/*'));
                     rmdir($extractDir);
                     return $xmlContent;
+                }
+                
+                // If no XML found, try to read any file
+                $allFiles = glob($extractDir . '/*');
+                if (!empty($allFiles)) {
+                    $content = file_get_contents($allFiles[0]);
+                    unlink($tempFile);
+                    array_map('unlink', glob($extractDir . '/*'));
+                    rmdir($extractDir);
+                    return $content;
                 }
             }
             
@@ -975,7 +1052,8 @@ class FetchRecentEmails extends Command
             
             $complianceRate = $total > 0 ? round(($passCount / $total) * 100, 2) : 0;
             
-            // Get failure reasons            $failures = [];
+            // Get failure reasons
+            $failures = [];
             foreach ($records as $record) {
                 if ($record->dkim_result !== 'pass' || $record->spf_result !== 'pass') {
                     $reasons = [];
