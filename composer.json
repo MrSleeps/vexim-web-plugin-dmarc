@@ -1,0 +1,60 @@
+{
+    "name": "mrsleeps/vexim-web-plugin-dmarc",
+    "description": "DMARC package for VExim Web UI dns plugins.",
+    "type": "filament-plugin",
+    "license": "MIT",
+    "keywords": [
+        "laravel",
+        "filament",
+        "dns",
+        "cloudflare",
+        "hosting"
+    ],
+    "homepage": "https://github.com/MrSleeps/vexim-web-plugin-dmarc",
+    "authors": [
+        {
+            "name": "MrSleeps",
+            "homepage": "https://github.com/MrSleeps"
+        }
+    ],
+    "require": {
+        "php": "^8.4",
+        "filament/filament": "^5.0",
+        "spatie/laravel-permission": "^7.4",
+        "directorytree/imapengine": "^1.25",
+        "phiki/phiki": "^2.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "VEximweb\\Plugin\\DMARC\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "VEximweb\\Plugin\\DMARC\\DMARCServiceProvider"
+            ]
+        },
+        "branch-alias": {
+            "dev-main": "1.x-dev"
+        }        
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "require-dev": {
+        "larastan/larastan": "^3.0",
+        "laravel/pint": "^1.0",
+        "nunomaduro/collision": "^8.0",
+        "orchestra/testbench": "^11.0",
+        "pestphp/pest": "^4.0",
+        "pestphp/pest-plugin-arch": "^4.0",
+        "pestphp/pest-plugin-laravel": "^4.0",
+        "pestphp/pest-plugin-livewire": "^4.0",
+        "rector/rector": "^2.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}
