@@ -29,4 +29,25 @@ return [
         // You can define multiple mailboxes if needed
         // 'secondary' => [ ... ],
     ],
+    'emails' => [
+        'default_rua_localpart' => 'dmarc',
+        'default_ruf_localpart' => 'dmarc',
+    ],    
+    
+    /*
+    |--------------------------------------------------------------------------
+    | Default Settings
+    |--------------------------------------------------------------------------
+    | These are the default values that will be used if not set in the database
+    */
+    'defaults' => [
+        'policy' => 'none',
+        'subdomain_policy' => null,
+        'adkim' => 'relaxed',
+        'aspf' => 'relaxed',
+        'reporting' => ['all'],
+        'percentage' => 100,
+        'report_interval' => 86400,
+        't' => 'n',
+    ],    
 ];
