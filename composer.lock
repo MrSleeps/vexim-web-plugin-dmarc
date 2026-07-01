@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5a358e86f290db6849a89d8434221f03",
+    "content-hash": "f7ea4bd95cf56d60af706e71f4c94179",
     "packages": [
         {
             "name": "blade-ui-kit/blade-heroicons",
@@ -283,6 +283,59 @@
                 }
             ],
             "time": "2024-02-09T16:56:22+00:00"
+        },
+        {
+            "name": "cbowofrivia/dmarc-record-builder",
+            "version": "v4.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/cbowofrivia/dmarc-record-builder.git",
+                "reference": "cbe7807bb1377815014d559624beddb7f7fe4db7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/cbowofrivia/dmarc-record-builder/zipball/cbe7807bb1377815014d559624beddb7f7fe4db7",
+                "reference": "cbe7807bb1377815014d559624beddb7f7fe4db7",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.3"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.15",
+                "pestphp/pest": "^3",
+                "rector/rector": "^2.2",
+                "symfony/var-dumper": "^7.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "CbowOfRivia\\DmarcRecordBuilder\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Charles Bowen",
+                    "email": "charlesrbowen93@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A lean package that makes creating DMARC records user friendly",
+            "homepage": "https://github.com/cbowofrivia/dmarc-record-builder",
+            "keywords": [
+                "cbowofrivia",
+                "dmarc",
+                "dmarc-record-builder"
+            ],
+            "support": {
+                "issues": "https://github.com/cbowofrivia/dmarc-record-builder/issues",
+                "source": "https://github.com/cbowofrivia/dmarc-record-builder/tree/v4.0.0"
+            },
+            "time": "2026-06-22T13:23:56+00:00"
         },
         {
             "name": "chillerlan/php-qrcode",
