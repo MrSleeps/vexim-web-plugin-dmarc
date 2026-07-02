@@ -23,7 +23,6 @@
         "spatie/laravel-permission": "^7.4",
         "directorytree/imapengine": "^1.25",
         "phiki/phiki": "^2.2",
-        "cbowofrivia/dmarc-record-builder": "^4.0"
     },
     "autoload": {
         "psr-4": {
